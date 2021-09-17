@@ -87,10 +87,23 @@ class TestSaleStock(TestSale):
         self.assertFalse(self.so.order_line[0].product_updatable)
         self.assertTrue(self.so.picking_ids, 'Sale Stock: no picking created for "invoice on order" stockable products')
         # let's do an invoice for a deposit of 5%
+        advance_product_0 = self.env['product.product'].create(dict(
+            name="Deposit",
+            categ_id=self.env.ref('product.product_category_1').id,
+            type="service",
+            list_price=150.0,
+            invoice_policy="order",
+            standard_price=100.0,
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            company_id=[],
+            taxes_id=[],
+            supplier_taxes_id=[]
+        ))
         adv_wiz = self.env['sale.advance.payment.inv'].with_context(active_ids=[self.so.id]).create({
             'advance_payment_method': 'percentage',
             'amount': 5.0,
-            'product_id': self.env.ref('sale.advance_product_0').id,
+            'product_id': advance_product_0.id,
         })
         act = adv_wiz.with_context(open_invoices=True).create_invoices()
         inv = self.env['account.invoice'].browse(act['res_id'])
@@ -118,8 +131,44 @@ class TestSaleStock(TestSale):
         of the picking. Check that a refund invoice is well generated.
         """
         # intial so
-        self.partner = self.env.ref('base.res_partner_1')
-        self.product = self.env.ref('product.product_delivery_01')
+        res_partner_category_13 = self.env['res.partner.category'].create(dict(
+            name="Distributor",
+            color=9
+        ))
+        res_partner_category_12 = self.env['res.partner.category'].create(dict(
+            name="Office Supplies",
+            color=8
+        ))
+        res_partner_1 = self.env['res.partner'].create(dict(
+            name="ASUSTeK",
+            category_id=[(6, 0, [res_partner_category_13.id, res_partner_category_12.id])],
+            supplier=True,
+            customer=False,
+            is_company=True,
+            city="Taipei",
+            zip="106",
+            country_id=self.env.ref('base.tw').id,
+            street="1 Hong Kong street",
+            email="asusteK@yourcompany.example.com",
+            phone="(+886) (02) 4162 2023",
+            website="http://www.asustek.com"
+        ))
+        self.partner = res_partner_1
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_delivery_01 = self.env['product.product'].create(dict(
+            name="Switch, 24 ports",
+            categ_id=product_category_5.id,
+            standard_price=55.0,
+            list_price=70.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            default_code="PROD_DEL"
+        ))
+        self.product = product_delivery_01
         so_vals = {
             'partner_id': self.partner.id,
             'partner_invoice_id': self.partner.id,
@@ -192,8 +241,44 @@ class TestSaleStock(TestSale):
         the SO is set on 'done', the SO should be fully invoiced.
         """
         # intial so
-        self.partner = self.env.ref('base.res_partner_1')
-        self.product = self.env.ref('product.product_delivery_01')
+        res_partner_category_13 = self.env['res.partner.category'].create(dict(
+            name="Distributor",
+            color=9
+        ))
+        res_partner_category_12 = self.env['res.partner.category'].create(dict(
+            name="Office Supplies",
+            color=8
+        ))
+        res_partner_1 = self.env['res.partner'].create(dict(
+            name="ASUSTeK",
+            category_id=[(6, 0, [res_partner_category_13.id, res_partner_category_12.id])],
+            supplier=True,
+            customer=False,
+            is_company=True,
+            city="Taipei",
+            zip="106",
+            country_id=self.env.ref('base.tw').id,
+            street="1 Hong Kong street",
+            email="asusteK@yourcompany.example.com",
+            phone="(+886) (02) 4162 2023",
+            website="http://www.asustek.com"
+        ))
+        self.partner = res_partner_1
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_delivery_01 = self.env['product.product'].create(dict(
+            name="Switch, 24 ports",
+            categ_id=product_category_5.id,
+            standard_price=55.0,
+            list_price=70.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            default_code="PROD_DEL"
+        ))
+        self.product = product_delivery_01
         so_vals = {
             'partner_id': self.partner.id,
             'partner_invoice_id': self.partner.id,
@@ -341,7 +426,33 @@ class TestSaleStock(TestSale):
         """
         item1 = self.products['prod_order']
         partner1 = self.partner.id
-        partner2 = self.env.ref('base.res_partner_2').id
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+        partner2 = res_partner_2
         so1 = self.env['sale.order'].create({
             'partner_id': partner1,
             'order_line': [(0, 0, {

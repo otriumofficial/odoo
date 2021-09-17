@@ -8,7 +8,35 @@ class TestBankStatementReconciliation(AccountingTestCase):
         self.il_model = self.env['account.invoice.line']
         self.bs_model = self.env['account.bank.statement']
         self.bsl_model = self.env['account.bank.statement.line']
-        self.partner_agrolait = self.env.ref("base.res_partner_2")
+
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+
+        self.partner_agrolait = res_partner_2
 
     def test_reconciliation_proposition(self):
         rcv_mv_line = self.create_invoice(100)

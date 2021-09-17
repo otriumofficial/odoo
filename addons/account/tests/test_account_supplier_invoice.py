@@ -17,13 +17,77 @@ class TestAccountSupplierInvoice(AccountingTestCase):
         invoice_account = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_receivable').id)], limit=1).id
         invoice_line_account = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_expenses').id)], limit=1).id
 
-        invoice = self.env['account.invoice'].create({'partner_id': self.env.ref('base.res_partner_2').id,
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+
+        invoice = self.env['account.invoice'].create({'partner_id': res_partner_2.id,
             'account_id': invoice_account,
             'type': 'in_invoice',
         })
         self.assertEquals(invoice.journal_id.type, 'purchase')
 
-        self.env['account.invoice.line'].create({'product_id': self.env.ref('product.product_product_4').id,
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref("product.product_category_1").id,
+            name="Physical"
+        ))
+
+        product_attribute_1 = self.env['product.attribute'].create(dict(
+            name="Memory"
+        ))
+
+        product_attribute_2 = self.env['product.attribute'].create(dict(
+            name="Color"
+        ))
+
+        product_attribute_value_1 = self.env['product.attribute.value'].create(dict(
+            name="16 GB",
+            attribute_id=product_attribute_1.id
+        ))
+
+        product_attribute_value_3 = self.env['product.attribute.value'].create(dict(
+            name="White",
+            attribute_id=product_attribute_2.id
+        ))
+
+        # self.product_4 = self.env.ref('product.product_product_4')
+        product_product_4 = self.env['product.product'].create(dict(
+            name="iPad Retina Display",
+            categ_id=product_category_5.id,
+            standard_price=500.0,
+            list_price=750.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            description_sale="7.9‑inch (diagonal) LED-backlit, 128Gb&#xA;Dual-core A5 with quad-core graphics&#xA;FaceTime HD Camera, 1.2 MP Photos",
+            default_code="E-COM01",
+            attribute_value_ids=[(6, 0, [product_attribute_value_1.id, product_attribute_value_3.id])]
+        ))
+
+        self.env['account.invoice.line'].create({'product_id': product_product_4.id,
             'quantity': 1.0,
             'price_unit': 100.0,
             'invoice_id': invoice.id,
@@ -73,13 +137,77 @@ class TestAccountSupplierInvoice(AccountingTestCase):
         invoice_account = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_receivable').id)], limit=1).id
         invoice_line_account = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_expenses').id)], limit=1).id
 
-        invoice = self.env['account.invoice'].create({'partner_id': self.env.ref('base.res_partner_2').id,
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+
+        invoice = self.env['account.invoice'].create({'partner_id': res_partner_2.id,
             'account_id': invoice_account,
             'type': 'in_invoice',
         })
         self.assertEquals(invoice.journal_id.type, 'purchase')
 
-        invoice_line = self.env['account.invoice.line'].create({'product_id': self.env.ref('product.product_product_4').id,
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref("product.product_category_1").id,
+            name="Physical"
+        ))
+
+        product_attribute_1 = self.env['product.attribute'].create(dict(
+            name="Memory"
+        ))
+
+        product_attribute_2 = self.env['product.attribute'].create(dict(
+            name="Color"
+        ))
+
+        product_attribute_value_1 = self.env['product.attribute.value'].create(dict(
+            name="16 GB",
+            attribute_id=product_attribute_1.id
+        ))
+
+        product_attribute_value_3 = self.env['product.attribute.value'].create(dict(
+            name="White",
+            attribute_id=product_attribute_2.id
+        ))
+
+        # self.product_4 = self.env.ref('product.product_product_4')
+        product_product_4 = self.env['product.product'].create(dict(
+            name="iPad Retina Display",
+            categ_id=product_category_5.id,
+            standard_price=500.0,
+            list_price=750.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            description_sale="7.9‑inch (diagonal) LED-backlit, 128Gb&#xA;Dual-core A5 with quad-core graphics&#xA;FaceTime HD Camera, 1.2 MP Photos",
+            default_code="E-COM01",
+            attribute_value_ids=[(6, 0, [product_attribute_value_1.id, product_attribute_value_3.id])]
+        ))
+
+        invoice_line = self.env['account.invoice.line'].create({'product_id': product_product_4.id,
             'quantity': 5.0,
             'price_unit': 100.0,
             'invoice_id': invoice.id,
@@ -121,16 +249,81 @@ class TestAccountSupplierInvoice(AccountingTestCase):
                 'partner_id': self.env.ref('base.main_partner').id,
             })
 
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+
         invoice_id = self.env['account.invoice'].create({
             'name': 'invoice test refund',
             'reference_type': 'none',
-            'partner_id': self.env.ref("base.res_partner_2").id,
+            'partner_id': res_partner_2.id,
             'account_id': invoice_account.id,
             'currency_id': self.env.ref('base.USD').id,
             'type': 'in_invoice',
         })
+
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref("product.product_category_1").id,
+            name="Physical"
+        ))
+
+        product_attribute_1 = self.env['product.attribute'].create(dict(
+            name="Memory"
+        ))
+
+        product_attribute_2 = self.env['product.attribute'].create(dict(
+            name="Color"
+        ))
+
+        product_attribute_value_1 = self.env['product.attribute.value'].create(dict(
+            name="16 GB",
+            attribute_id=product_attribute_1.id
+        ))
+
+        product_attribute_value_3 = self.env['product.attribute.value'].create(dict(
+            name="White",
+            attribute_id=product_attribute_2.id
+        ))
+
+        # self.product_4 = self.env.ref('product.product_product_4')
+        product_product_4 = self.env['product.product'].create(dict(
+            name="iPad Retina Display",
+            categ_id=product_category_5.id,
+            standard_price=500.0,
+            list_price=750.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            description_sale="7.9‑inch (diagonal) LED-backlit, 128Gb&#xA;Dual-core A5 with quad-core graphics&#xA;FaceTime HD Camera, 1.2 MP Photos",
+            default_code="E-COM01",
+            attribute_value_ids=[(6, 0, [product_attribute_value_1.id, product_attribute_value_3.id])]
+        ))
+
         self.env['account.invoice.line'].create({
-            'product_id': self.env.ref("product.product_product_4").id,
+            'product_id': product_product_4.id,
             'quantity': 1,
             'price_unit': 15.0,
             'invoice_id': invoice_id.id,

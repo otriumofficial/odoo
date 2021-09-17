@@ -111,8 +111,35 @@ class TestSaleOrder(TestSale):
         # force the pricelist to have the same currency as the company
         self.env.ref('product.list0').currency_id = self.env.ref('base.main_company').currency_id
 
-        serv_cost = self.env.ref('product.service_cost_01')
-        prod_gap = self.env.ref('product.product_product_1')
+        product_category_3 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Services"
+        ))
+        service_cost_01 = self.env['product.product'].create(dict(
+            name="External Audit",
+            categ_id=product_category_3.id,
+            standard_price=160,
+            list_price=180,
+            type="service",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id = self.env.ref('product.product_uom_unit').id,
+            description="Example of products to invoice based on cost.",
+            default_code="SERV_COST",
+            expense_policy="cost"
+        ))
+        serv_cost = service_cost_01
+        product_product_1 = self.env['product.product'].create(dict(
+            name="GAP Analysis Service",
+            categ_id=product_category_3.id,
+            standard_price=20.5,
+            list_price=30.75,
+            type="service",
+            uom_id=self.env.ref('product.product_uom_hour').id,
+            uom_po_id=self.env.ref('product.product_uom_hour').id,
+            description="Example of products to invoice based on delivery.",
+            invoice_policy="delivery"
+        ))
+        prod_gap = product_product_1
         so = self.env['sale.order'].create({
             'partner_id': self.partner.id,
             'partner_invoice_id': self.partner.id,
@@ -122,7 +149,33 @@ class TestSaleOrder(TestSale):
         })
         so.action_confirm()
         so._create_analytic_account()
-        inv_partner = self.env.ref('base.res_partner_2')
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+        inv_partner = res_partner_2
         company = self.env.ref('base.main_company')
         journal = self.env['account.journal'].create({'name': 'Purchase Journal - Test', 'code': 'STPJ', 'type': 'purchase', 'company_id': company.id})
         account_payable = self.env['account.account'].create({'code': 'X1111', 'name': 'Sale - Test Payable Account', 'user_type_id': self.env.ref('account.data_account_type_payable').id, 'reconcile': True})
@@ -149,7 +202,28 @@ class TestSaleOrder(TestSale):
            which would mean that taxes from all child companies
            would end up on the order lines.
         """
-        user_demo = self.env.ref('base.user_demo')
+        main_company=self.env['res.company'].create(dict(
+            name="YourCompany",
+            external_report_layout="standard"
+        ))
+        partner_demo=self.env['res.partner'].create(dict(
+            name="Demo User",
+            company_id=main_company.id,
+            customer=False,
+            email="demo@yourcompany.example.com",
+            company_name="YourCompany",
+            street="Avenue des Dessus-de-Lives, 2",
+            city="Namur (Loyers)",
+            zip="5101",
+            country_id=self.env.ref('base.be').id
+        ))
+        user_demo = self.env['res.users'].create(dict(
+            partner_id=partner_demo.id,
+            login="demo",
+            password="demo",
+            company_id=main_company.id,
+            groups_id=[(6, 0, [self.env.ref('base.group_user'), self.env.ref('base.group_partner_manager')])]
+        ))
         company_1 = self.env.ref('base.main_company')
         company_2 = self.env['res.company'].create({
             'name': 'company 2',
@@ -173,8 +247,35 @@ class TestSaleOrder(TestSale):
             'taxes_id': [(6, False, [tax_company_1.id, tax_company_2.id])],
         })
 
+        res_partner_category_0 = self.env['res.partner.category'].create(dict(
+            name="Partner",
+            color=1,
+        ))
+        res_partner_category_7 = self.env['res.partner.category'].create(dict(
+            name="IT Services",
+            color=5,
+            parent_id=res_partner_category_0.id
+        ))
+        res_partner_category_9 = self.env['res.partner.category'].create(dict(
+            name="Components Buyer",
+            color=6
+        ))
+        res_partner_2 = self.env['res.partner'].create(dict(
+            name="Agrolait",
+            category_id=[(6, 0, [res_partner_category_7.id, res_partner_category_9.id])],
+            is_company=True,
+            city="Wavre",
+            zip="1300",
+            country_id=self.env.ref('base.be').id,
+            street="69 rue de Namur",
+            email="agrolait@yourcompany.example.com",
+            phone="+32 10 588 558",
+            website="http://www.agrolait.com",
+            property_payment_term_id=self.env.ref('account.account_payment_term_net').id
+        ))
+
         so_1 = self.env['sale.order'].sudo(user_demo.id).create({
-            'partner_id': self.env.ref('base.res_partner_2').id,
+            'partner_id': res_partner_2.id,
             'company_id': company_1.id,
         })
         so_1.write({
