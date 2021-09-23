@@ -38,7 +38,3 @@ setup/win32/static/postgresql*.exe
 /man/
 /share/
 /src/
-
-# running unittests
-allure_results/
-htmlcov/
