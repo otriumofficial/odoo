@@ -1512,8 +1512,7 @@ QUnit.module('basic_fields', {
     });
 
     QUnit.test('binary fields that are readonly in create mode do not download', function (assert) {
-        assert.expect(2);
-
+        assert.expect(4);
         // save the session function
         var oldGetFile = session.get_file;
         session.get_file = function (option) {
@@ -1546,10 +1545,17 @@ QUnit.module('basic_fields', {
         form.$('.o_field_many2one input').click();
         $dropdown.find('li:not(.o_m2o_dropdown_option):contains(xphone)').click();
 
-        assert.strictEqual(form.$('a.o_field_widget[name="document"] > .fa-download').length, 1,
+        assert.containsOnce(form, 'a.o_field_widget[name="document"]',
             'The link to download the binary should be present');
+        assert.containsNone(form, 'a.o_field_widget[name="document"] > .fa-download',
+            'The download icon should not be present');
 
-        form.$('a.o_field_widget[name="document"]').click();
+        var link = form.$('a.o_field_widget[name="document"]');
+        assert.ok(link.is(':hidden'), "the link element should not be visible");
+
+        // force visibility to test that the clicking has also been disabled
+        link.removeClass('o_hidden');
+        testUtils.dom.click(link);
 
         assert.verifySteps([]); // We shoudln't have passed through steps
 
