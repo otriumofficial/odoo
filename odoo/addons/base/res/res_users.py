@@ -521,7 +521,9 @@ class Users(models.Model):
         cr = cls.pool.cursor()
         try:
             self = api.Environment(cr, uid, {})[cls._name]
-            self.check_credentials(passwd)
+            if not self.env.user.active:
+                raise AccessDenied()
+            self._check_credentials(passwd)
             cls.__uid_cache[db][uid] = passwd
         finally:
             cr.close()
