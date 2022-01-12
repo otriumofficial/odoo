@@ -523,7 +523,7 @@ class Users(models.Model):
             self = api.Environment(cr, uid, {})[cls._name]
             if not self.env.user.active:
                 raise AccessDenied()
-            self._check_credentials(passwd)
+            self.check_credentials(passwd)
             cls.__uid_cache[db][uid] = passwd
         finally:
             cr.close()
