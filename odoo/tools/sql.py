@@ -201,8 +201,8 @@ def create_unique_index(cr, indexname, tablename, expressions):
 
 def drop_index(cr, indexname, tablename):
     """ Drop the given index if it exists. """
-    cr.execute('DROP INDEX IF EXISTS "{}"'.format(indexname))
-    _schema.debug("Table %r: dropped index %r", tablename, indexname)
+    # cr.execute('DROP INDEX IF EXISTS "{}"'.format(indexname))
+    _schema.debug("Table %r: refuse drop index %r", tablename, indexname)
 
 def drop_view_if_exists(cr, viewname):
     cr.execute("DROP view IF EXISTS %s CASCADE" % (viewname,))

@@ -6,14 +6,71 @@ from odoo.addons.account.tests.account_test_classes import AccountingTestCase
 
 class TestSaleOrderInvoicing(AccountingTestCase):
 
+    def setUp(self):
+        super(TestSaleOrderInvoicing, self).setUp()
+        res_partner_category_13 = self.env['res.partner.category'].create(dict(
+            name="Distributor",
+            color=9
+        ))
+        res_partner_category_12 = self.env['res.partner.category'].create(dict(
+            name="Office Supplies",
+            color=8
+        ))
+        self.res_partner_1 = self.env['res.partner'].create(dict(
+            name="ASUSTeK",
+            category_id=[(6, 0, [res_partner_category_13.id, res_partner_category_12.id])],
+            supplier=True,
+            customer=False,
+            is_company=True,
+            city="Taipei",
+            zip="106",
+            country_id=self.env.ref('base.tw').id,
+            street="1 Hong Kong street",
+            email="asusteK@yourcompany.example.com",
+            phone="(+886) (02) 4162 2023",
+            website="http://www.asustek.com"
+        ))
+
     def test_sale_to_invoice_and_to_be_invoiced(self):
         """ Testing amount to invoice and amount to be invoiced, with advances. """
-
-        partner = self.env.ref('base.res_partner_1')
+        partner = self.res_partner_1
         partner.property_account_receivable_id = self.env['account.account'].search(
             [('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1)
-        product_1 = self.env.ref('product.product_product_8')
-        product_2 = self.env.ref('product.product_product_11')
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_product_8 = self.env['product.product'].create(dict(
+            name="iMac",
+            categ_id=product_category_5.id,
+            standard_price=1299.0,
+            list_price=1799.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            default_code="E-COM09",
+            weight="9.54"
+        ))
+        product_1 = product_product_8
+        product_attribute_1 = self.env['product.attribute'].create(dict(
+            name="Memory"
+        ))
+        product_attribute_value_1 = self.env['product.attribute.value'].create(dict(
+            name="16 GB",
+            attribute_id=product_attribute_1.id
+        ))
+        product_product_11 = self.env['product.product'].create(dict(
+            name="iPod",
+            categ_id=product_category_5.id,
+            standard_price=14,
+            list_price=16.50,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            default_code="E-COM12",
+            attribute_value_ids=[(6,0,[product_attribute_value_1.id])]
+        ))
+        product_2 = product_product_11
 
         # In order to test I create sales order and confirmed it.
         order = self.env['sale.order'].create({
@@ -45,7 +102,20 @@ class TestSaleOrderInvoicing(AccountingTestCase):
         order.with_context(context).action_confirm()
 
         # Now I create invoice.
-        advance_product = self.env.ref('sale.advance_product_0')
+        advance_product_0 = self.env['product.product'].create(dict(
+            name="Deposit",
+            categ_id=self.env.ref('product.product_category_1').id,
+            type="service",
+            list_price=150.0,
+            invoice_policy="order",
+            standard_price=100.0,
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            company_id=[],
+            taxes_id=[],
+            supplier_taxes_id=[]
+        ))
+        advance_product = advance_product_0
         advance_product.property_account_income_id = self.env['account.account'].search(
             [('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1)
 
@@ -142,7 +212,7 @@ class TestSaleOrderInvoicing(AccountingTestCase):
             'taxes_id': False, # force no tax
         })
 
-        partner = self.env.ref('base.res_partner_1')
+        partner = self.res_partner_1
         partner.property_account_receivable_id = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1)
 
         # create Sales order, with 2 lines: one delivered, one ordered

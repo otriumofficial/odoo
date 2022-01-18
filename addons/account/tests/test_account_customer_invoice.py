@@ -18,9 +18,39 @@ class TestAccountCustomerInvoice(AccountTestUsers):
         # Test with that user which have rights to make Invoicing and payment and who is accountant.
         # Create a customer invoice
         self.account_invoice_obj = self.env['account.invoice']
-        self.payment_term = self.env.ref('account.account_payment_term_advance')
+        account_payment_term_advance = self.env['account.payment.term'].create(dict(
+            name="30% Advance End of Following Month",
+            note="Payment terms: 30% Advance End of Following Month",
+            line_ids=[
+                (5, 0),
+                (0, 0, {'value': 'percent', 'value_amount': 30.0, 'sequence': 400, 'days': 0, 'option': 'day_after_invoice_date'}),
+                (0, 0, {'value': 'balance', 'value_amount': 0.0, 'sequence': 500, 'days': 0, 'option': 'last_day_following_month'})
+            ]
+        ))
+        self.payment_term = account_payment_term_advance
         self.journalrec = self.env['account.journal'].search([('type', '=', 'sale')])[0]
-        self.partner3 = self.env.ref('base.res_partner_3')
+        res_partner_category_8 = self.env['res.partner.category'].create(dict(
+            name="Consultancy Services",
+            color=5
+        ))
+        res_partner_category_14 = self.env['res.partner.category'].create(dict(
+            name="Manufacturer",
+            color=10
+        ))
+        res_partner_3 = self.env['res.partner'].create(dict(
+            name="China Export",
+            supplier=True,
+            category_id=[(6, 0, [res_partner_category_8.id, res_partner_category_14.id])],
+            is_company=True,
+            city="Shanghai",
+            zip="200000",
+            country_id=self.env.ref('base.cn').id,
+            street="52 Chop Suey street",
+            email="chinaexport@yourcompany.example.com",
+            phone="+86 21 6484 5671",
+            website="http://www.chinaexport.com/"
+        ))
+        self.partner3 = res_partner_3
         account_user_type = self.env.ref('account.data_account_type_receivable')
         self.ova = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_current_assets').id)], limit=1)
 
@@ -32,10 +62,26 @@ class TestAccountCustomerInvoice(AccountTestUsers):
             reconcile=True,
         ))
 
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_product_5 = self.env['product.product'].create(dict(
+            name="Custom Computer (kit)",
+            categ_id=product_category_5.id,
+            standard_price=600.0,
+            list_price=147.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            description="Custom computer shipped in kit.",
+            default_code="E-COM06"
+        ))
+
         invoice_line_data = [
             (0, 0,
                 {
-                    'product_id': self.env.ref('product.product_product_5').id,
+                    'product_id': product_product_5.id,
                     'quantity': 10.0,
                     'account_id': self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1).id,
                     'name': 'product test 5',
@@ -106,9 +152,39 @@ class TestAccountCustomerInvoice(AccountTestUsers):
 
         self.env.user.company_id.tax_calculation_rounding_method = 'round_globally'
 
-        payment_term = self.env.ref('account.account_payment_term_advance')
+        account_payment_term_advance = self.env['account.payment.term'].create(dict(
+            name="30% Advance End of Following Month",
+            note="Payment terms: 30% Advance End of Following Month",
+            line_ids=[
+                (5, 0),
+                (0, 0, {'value': 'percent', 'value_amount': 30.0, 'sequence': 400, 'days': 0, 'option': 'day_after_invoice_date'}),
+                (0, 0, {'value': 'balance', 'value_amount': 0.0, 'sequence': 500, 'days': 0, 'option': 'last_day_following_month'})
+            ]
+        ))
+        payment_term = account_payment_term_advance
         journalrec = self.env['account.journal'].search([('type', '=', 'sale')])[0]
-        partner3 = self.env.ref('base.res_partner_3')
+        res_partner_category_8 = self.env['res.partner.category'].create(dict(
+            name="Consultancy Services",
+            color=5
+        ))
+        res_partner_category_14 = self.env['res.partner.category'].create(dict(
+            name="Manufacturer",
+            color=10
+        ))
+        res_partner_3 = self.env['res.partner'].create(dict(
+            name="China Export",
+            supplier=True,
+            category_id=[(6, 0, [res_partner_category_8.id, res_partner_category_14.id])],
+            is_company=True,
+            city="Shanghai",
+            zip="200000",
+            country_id=self.env.ref('base.cn').id,
+            street="52 Chop Suey street",
+            email="chinaexport@yourcompany.example.com",
+            phone="+86 21 6484 5671",
+            website="http://www.chinaexport.com/"
+        ))
+        partner3 = res_partner_3
         account_id = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1).id
 
         tax = self.env['account.tax'].create({
@@ -118,10 +194,53 @@ class TestAccountCustomerInvoice(AccountTestUsers):
             'type_tax_use': 'sale',
         })
 
+        product_category_3 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Services"
+        ))
+        product_product_1 = self.env['product.product'].create(dict(
+            name="GAP Analysis Service",
+            categ_id=product_category_3.id,
+            standard_price=20.5,
+            list_price=30.75,
+            type="service",
+            uom_id=self.env.ref('product.product_uom_hour').id,
+            uom_po_id=self.env.ref('product.product_uom_hour').id,
+            description="Example of products to invoice based on delivery.",
+            invoice_policy="delivery"
+        ))
+        product_product_2 = self.env['product.product'].create(dict(
+            name="Support Service",
+            categ_id=product_category_3.id,
+            standard_price=25.5,
+            list_price=38.25,
+            type="service",
+            uom_id=self.env.ref('product.product_uom_hour').id,
+            uom_po_id=self.env.ref('product.product_uom_hour').id,
+            description="Example of product to invoice based on delivery.",
+            invoice_policy="delivery"
+        ))
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_product_3 = self.env['product.product'].create(dict(
+            name="Computer SC234",
+            categ_id=product_category_5.id,
+            standard_price=450.0,
+            list_price=300.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            description_sale="""17" LCD Monitor&#xA;Processor AMD 8-Core""",
+            default_code="PCSC234",
+            invoice_policy="delivery"
+        ))
+
         invoice_line_data = [
             (0, 0,
                 {
-                    'product_id': self.env.ref('product.product_product_1').id,
+                    'product_id': product_product_1.id,
                     'quantity': 40.0,
                     'account_id': account_id,
                     'name': 'product test 1',
@@ -132,7 +251,7 @@ class TestAccountCustomerInvoice(AccountTestUsers):
              ),
               (0, 0,
                 {
-                    'product_id': self.env.ref('product.product_product_2').id,
+                    'product_id': product_product_2.id,
                     'quantity': 21.0,
                     'account_id': self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1).id,
                     'name': 'product test 2',
@@ -143,7 +262,7 @@ class TestAccountCustomerInvoice(AccountTestUsers):
              ),
              (0, 0,
                 {
-                    'product_id': self.env.ref('product.product_product_3').id,
+                    'product_id': product_product_3.id,
                     'quantity': 21.0,
                     'account_id': self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1).id,
                     'name': 'product test 3',
@@ -182,7 +301,28 @@ class TestAccountCustomerInvoice(AccountTestUsers):
         })
 
         journalrec = self.env['account.journal'].search([('type', '=', 'sale')])[0]
-        partner3 = self.env.ref('base.res_partner_3')
+        res_partner_category_8 = self.env['res.partner.category'].create(dict(
+            name="Consultancy Services",
+            color=5
+        ))
+        res_partner_category_14 = self.env['res.partner.category'].create(dict(
+            name="Manufacturer",
+            color=10
+        ))
+        res_partner_3 = self.env['res.partner'].create(dict(
+            name="China Export",
+            supplier=True,
+            category_id=[(6, 0, [res_partner_category_8.id, res_partner_category_14.id])],
+            is_company=True,
+            city="Shanghai",
+            zip="200000",
+            country_id=self.env.ref('base.cn').id,
+            street="52 Chop Suey street",
+            email="chinaexport@yourcompany.example.com",
+            phone="+86 21 6484 5671",
+            website="http://www.chinaexport.com/"
+        ))
+        partner3 = res_partner_3
         account_id = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_account_type_revenue').id)], limit=1).id
 
         tax = self.env['account.tax'].create({
@@ -194,10 +334,26 @@ class TestAccountCustomerInvoice(AccountTestUsers):
             'refund_account_id': tax_refund_account.id
         })
 
+        product_category_3 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Services"
+        ))
+        product_product_1 = self.env['product.product'].create(dict(
+            name="GAP Analysis Service",
+            categ_id=product_category_3.id,
+            standard_price=20.5,
+            list_price=30.75,
+            type="service",
+            uom_id=self.env.ref('product.product_uom_hour').id,
+            uom_po_id=self.env.ref('product.product_uom_hour').id,
+            description="Example of products to invoice based on delivery.",
+            invoice_policy="delivery"
+        ))
+
         invoice_line_data = [
             (0, 0,
                 {
-                    'product_id': self.env.ref('product.product_product_1').id,
+                    'product_id': product_product_1.id,
                     'quantity': 40.0,
                     'account_id': account_id,
                     'name': 'product test 1',

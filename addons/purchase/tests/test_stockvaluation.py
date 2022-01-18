@@ -15,7 +15,28 @@ class TestStockValuation(TransactionCase):
         super(TestStockValuation, self).setUp()
         self.supplier_location = self.env.ref('stock.stock_location_suppliers')
         self.stock_location = self.env.ref('stock.stock_location_stock')
-        self.partner_id = self.env.ref('base.res_partner_1')
+        res_partner_category_13 = self.env['res.partner.category'].create(dict(
+            name="Distributor",
+            color=9
+        ))
+        res_partner_category_12 = self.env['res.partner.category'].create(dict(
+            name="Office Supplies",
+            color=8
+        ))
+        self.partner_id = self.env['res.partner'].create(dict(
+            name="ASUSTeK",
+            category_id=[(6, 0, [res_partner_category_13.id, res_partner_category_12.id])],
+            supplier=True,
+            customer=False,
+            is_company=True,
+            city="Taipei",
+            zip="106",
+            country_id=self.env.ref('base.tw').id,
+            street="1 Hong Kong street",
+            email="asusteK@yourcompany.example.com",
+            phone="(+886) (02) 4162 2023",
+            website="http://www.asustek.com"
+        ))
         self.product1 = self.env.ref('product.product_product_8')
         Account = self.env['account.account']
         self.stock_input_account = Account.create({
@@ -280,8 +301,45 @@ class TestStockValuationWithCOA(AccountingTestCase):
         super(TestStockValuationWithCOA, self).setUp()
         self.supplier_location = self.env.ref('stock.stock_location_suppliers')
         self.stock_location = self.env.ref('stock.stock_location_stock')
-        self.partner_id = self.env.ref('base.res_partner_1')
-        self.product1 = self.env.ref('product.product_product_8')
+        res_partner_category_13 = self.env['res.partner.category'].create(dict(
+            name="Distributor",
+            color=9
+        ))
+        res_partner_category_12 = self.env['res.partner.category'].create(dict(
+            name="Office Supplies",
+            color=8
+        ))
+        res_partner_1 = self.env['res.partner'].create(dict(
+            name="ASUSTeK",
+            category_id=[(6, 0, [res_partner_category_13.id, res_partner_category_12.id])],
+            supplier=True,
+            customer=False,
+            is_company=True,
+            city="Taipei",
+            zip="106",
+            country_id=self.env.ref('base.tw').id,
+            street="1 Hong Kong street",
+            email="asusteK@yourcompany.example.com",
+            phone="(+886) (02) 4162 2023",
+            website="http://www.asustek.com"
+        ))
+        self.partner_id = res_partner_1
+        product_category_5 = self.env['product.category'].create(dict(
+            parent_id=self.env.ref('product.product_category_1').id,
+            name="Physical"
+        ))
+        product_product_8 = self.env['product.product'].create(dict(
+            name="iMac",
+            categ_id=product_category_5.id,
+            standard_price=1299.0,
+            list_price=1799.0,
+            type="consu",
+            uom_id=self.env.ref('product.product_uom_unit').id,
+            uom_po_id=self.env.ref('product.product_uom_unit').id,
+            default_code="E-COM09",
+            weight="9.54"
+        ))
+        self.product1 = product_product_8
         Account = self.env['account.account']
         self.usd_currency = self.env.ref('base.USD')
         self.eur_currency = self.env.ref('base.EUR')
