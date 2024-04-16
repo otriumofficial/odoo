@@ -610,7 +610,7 @@ class JsonRequest(WebRequest):
 
         # Read POST content or POST Form Data named "request"
         try:
-            self.jsonrequest = json.loads(request)
+            self.jsonrequest = json.loads(request) if request else json.loads('{}')
         except ValueError:
             msg = 'Invalid JSON data: %r' % (request,)
             _logger.info('%s: %s', self.httprequest.path, msg)
