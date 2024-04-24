@@ -844,6 +844,10 @@ class Worker(object):
             _logger.info("Worker (%s) exiting. request_count: %s, registry count: %s.",
                          self.pid, self.request_count,
                          len(odoo.modules.registry.Registry.registries))
+            if self.request_count == 0:
+                # Worker has exceeded memory limit without processing any requests
+                # raise an exception to force it to exit and clear memory
+                raise Exception("Worker (%s) exited without processing any requests" % self.pid)
             self.stop()
         except Exception:
             _logger.exception("Worker (%s) Exception occured, exiting..." % self.pid)
